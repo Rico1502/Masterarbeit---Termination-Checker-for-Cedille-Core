@@ -1,0 +1,102 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: cfe8379e1577c5d5bdf1ae4df05331372db1ffb9f228fbba8fc345277e759589
+
+name:           Masterarbeit
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/Masterarbeit#readme>
+homepage:       https://github.com/githubuser/Masterarbeit#readme
+bug-reports:    https://github.com/githubuser/Masterarbeit/issues
+author:         Rico Ahlbaeumer
+maintainer:     rico.ahlbaeumer@tu-dortmund.de
+copyright:      2020 Rico Ahlbaeumer
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/Masterarbeit
+
+library
+  exposed-modules:
+      CedilleCore
+      Check
+      Core
+      CoreToPrim
+      Elaboration
+      ElaborationChecker
+      Intersection
+      Lib
+      Norm
+      Parser
+      StrictType
+      StrictTypeTransform
+      Trie
+      Types
+  other-modules:
+      Paths_Masterarbeit
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , criterion-measurement
+    , directory
+    , filepath
+    , logict
+    , mtl
+    , transformers
+    , unicode-show
+    , unification-fd
+  default-language: Haskell2010
+
+executable Masterarbeit-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_Masterarbeit
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -O2 -fno-full-laziness
+  build-depends:
+      Masterarbeit
+    , base >=4.7 && <5
+    , containers
+    , criterion-measurement
+    , directory
+    , filepath
+    , logict
+    , mtl
+    , transformers
+    , unicode-show
+    , unification-fd
+  default-language: Haskell2010
+
+test-suite Masterarbeit-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_Masterarbeit
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -O2 -fno-full-laziness
+  build-depends:
+      Masterarbeit
+    , base >=4.7 && <5
+    , containers
+    , criterion-measurement
+    , directory
+    , filepath
+    , logict
+    , mtl
+    , transformers
+    , unicode-show
+    , unification-fd
+  default-language: Haskell2010

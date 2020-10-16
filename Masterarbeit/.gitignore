@@ -1,0 +1,8 @@
+.stack-work/
+Masterarbeit/dist/
+Masterarbeit/.stack-work/
+Masterarbeit/profiles/
+*.hp
+*.prof
+*~
+

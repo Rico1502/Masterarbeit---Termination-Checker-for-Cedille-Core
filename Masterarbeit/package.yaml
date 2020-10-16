@@ -1,0 +1,67 @@
+name:                Masterarbeit
+version:             0.1.0.0
+github:              "githubuser/Masterarbeit"
+license:             BSD3
+author:              "Rico Ahlbaeumer"
+maintainer:          "rico.ahlbaeumer@tu-dortmund.de"
+copyright:           "2020 Rico Ahlbaeumer"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/githubuser/Masterarbeit#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- unicode-show
+- logict
+- unification-fd
+- mtl
+- transformers
+- containers
+- criterion-measurement
+- filepath
+- directory
+
+library:
+  source-dirs: 
+  - src
+
+executables:
+  Masterarbeit-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts 
+    - -with-rtsopts=-N
+    - -O2
+    - -fno-full-laziness
+    dependencies:
+    - Masterarbeit
+    - unicode-show
+    - logict
+
+
+tests:
+  Masterarbeit-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -O2
+    - -fno-full-laziness
+    dependencies:
+    - Masterarbeit
+    - unicode-show
+    - logict
