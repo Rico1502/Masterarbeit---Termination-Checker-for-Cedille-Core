@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cfe8379e1577c5d5bdf1ae4df05331372db1ffb9f228fbba8fc345277e759589
+-- hash: 4b1277adf2a14860ec6843a2b2022b1a549e0f4b7071f2e59b34d209a9f99973
 
 name:           Masterarbeit
 version:        0.1.0.0
@@ -33,6 +33,8 @@ library
       CoreToPrim
       Elaboration
       ElaborationChecker
+      ElaborationCheckerMP
+      ElaborationCheckerN
       Intersection
       Lib
       Norm
@@ -51,8 +53,10 @@ library
     , criterion-measurement
     , directory
     , filepath
+    , hspec
     , logict
     , mtl
+    , parallel-io
     , transformers
     , unicode-show
     , unification-fd
@@ -72,8 +76,10 @@ executable Masterarbeit-exe
     , criterion-measurement
     , directory
     , filepath
+    , hspec
     , logict
     , mtl
+    , parallel-io
     , transformers
     , unicode-show
     , unification-fd
@@ -94,8 +100,10 @@ test-suite Masterarbeit-test
     , criterion-measurement
     , directory
     , filepath
+    , hspec
     , logict
     , mtl
+    , parallel-io
     , transformers
     , unicode-show
     , unification-fd

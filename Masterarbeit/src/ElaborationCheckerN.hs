@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances, DeriveFunctor, PatternSynonyms, DeriveFoldable #-}
 
-module ElaborationChecker where
+module ElaborationCheckerN where
 
 -- external packages:
 import Criterion.Measurement
@@ -431,7 +431,7 @@ putDecorations (Elaboration (AppP ftr str) deco) decL   =
 
 
 computeUnifiers :: MonadLogic m => (Elaboration VariableE, [(StrictType VariableE, StrictType VariableE)]) -> m (Elaboration VariableE)
-computeUnifiers (elab, constr) = (unifyDeco (getDecorations elab) constr) >>- return . putDecorations elab
+computeUnifiers (elab, constr) = (unifyDecoN (getDecorations elab) constr) >>- return . putDecorations elab
 
 
 -- Too further check results:
@@ -551,7 +551,7 @@ anyDecEmpty (Elaboration (AppP ftr str) dec)    = dec == (Decoration $ ITyp []) 
 showIfSix :: Maybe (Elaboration VariableE) -> IO (Maybe (Elaboration VariableE))
 showIfSix trm = 
     if null trm then do
-        putStrLn "ML: No type for this dimension."
+        putStrLn "MLN: No type for this dimension."
         --putStrLn "Retrying computation with \969 (empty intersection) type."
         --putStrLn ""
         --putStrLn "Elaborates with \969 to:"
@@ -559,7 +559,7 @@ showIfSix trm =
         putStrLn ""
         return trm
     else do
-        putStrLn "ML: Elaborates to:"
+        putStrLn "MLN: Elaborates to:"
         mapM_ (putStrLn . show) trm
         putStrLn ""
         --putStrLn "Result Size:"
@@ -579,25 +579,25 @@ showIf trm =
 
 memCheck :: String -> Int -> IO ()
 memCheck trm 3 = do
-    putStrLn "ML: Computing farther than dimension 2 is beyond any time constraint."
-    putStrLn "ML: Done."
+    putStrLn "MLN: Computing farther than dimension 2 is beyond any time constraint."
+    putStrLn "MLN: Done."
 memCheck trm i = do
-    putStrLn $ "ML: Trying Dimension: " ++ (show i) 
+    putStrLn $ "MLN: Trying Dimension: " ++ (show i) 
     initializeTime
     start <- getTime
     chk <- showIfSix ( observeT ((once (prsAndElab trm i)) :: LogicT Maybe (Elaboration VariableE)) )
     end <- getTime
-    putStrLn $ "ML: Elapsed time for dimension " ++ show i ++ ": " ++ printf "%.4f secs (%.4f min)." (end - start) ((end - start)/60)
+    putStrLn $ "MLN: Elapsed time for dimension " ++ show i ++ ": " ++ printf "%.4f secs (%.4f min)." (end - start) ((end - start)/60)
     putStrLn ""
     case chk of
         Nothing -> do 
-            putStrLn "ML: Runing algorithm for next dimension."
+            putStrLn "MLN: Runing algorithm for next dimension."
             memCheck trm (i+1)
         _   -> 
-            putStrLn "ML: Done."
+            putStrLn "MLN: Done."
 
 memCheckTrmP :: TrmP -> Int -> IO (Maybe (Elaboration VariableE))
-memCheckTrmP trm 5 = do
+memCheckTrmP trm 3 = do
     putStrLn "Computing farther than dimension 2 is beyond any time constraint."
     putStrLn "Done."
     return Nothing

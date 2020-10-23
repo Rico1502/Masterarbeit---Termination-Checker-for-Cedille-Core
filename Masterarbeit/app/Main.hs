@@ -1,5 +1,5 @@
 import System.Environment
-import ElaborationChecker
+import ElaborationCheckerN
 import Elaboration
 import StrictType
 import Control.Monad.Logic
@@ -28,7 +28,7 @@ main = do
             putStrLn ""
             initializeTime
             start <- getTime
-            chk <- memCheck trm (read dim)
+            ElaborationCheckerN.memCheck trm (read dim)
             --showIfSix ((prsAndElab2 trm (read dim)) :: [Elaboration VariableE])
             --showIf ( (prsAndElab trm (read dim)) :: [(Elaboration VariableE,[(StrictType VariableE, StrictType VariableE)])])
             end <- getTime

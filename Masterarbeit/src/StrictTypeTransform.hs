@@ -133,6 +133,15 @@ unifyDeco :: MonadLogic m => [Decoration VariableE] -> [(StrictType VariableE, S
 unifyDeco xs constr = (evalMonadic (map (\dec -> (intToUST . unMkDec) dec) xs) (map (\const -> ((stToUST . fst) const, (stToUST . snd) const)) constr)) >>- \res ->
     return $ map (\x -> (clearDuplicateDeco . Decoration . uSTToIntr) x ) res
 
+unifyDecoN :: MonadLogic m => [Decoration VariableE] -> [(StrictType VariableE, StrictType VariableE)] -> m [Decoration VariableE]
+unifyDecoN xs constr = (evalMonadicN (map (\dec -> (intToUST . unMkDec) dec) xs) (map (\const -> ((stToUST . fst) const, (stToUST . snd) const)) constr)) >>- \res ->
+    return $ map (\x -> (clearDuplicateDeco . Decoration . uSTToIntr) x ) res
+
+
+unifyDecoMP :: MonadPlus m => [Decoration VariableE] -> [(StrictType VariableE, StrictType VariableE)] -> m [Decoration VariableE]
+unifyDecoMP xs constr = (evalMonadicMP (map (\dec -> (intToUST . unMkDec) dec) xs) (map (\const -> ((stToUST . fst) const, (stToUST . snd) const)) constr)) >>= \res ->
+    return $ map (\x -> (clearDuplicateDeco . Decoration . uSTToIntr) x ) res
+
 
 -- Same results as the old function...
 bindAndApplyGroupN :: [UStrictType] -> [(UStrictType, UStrictType)] -> IntBindingT StrictType2 Logic (Either (UFailure StrictType2 IntVar) [UStrictType])
@@ -183,16 +192,42 @@ bindAndApplyGroup xs constr = do
         ) constr
     (runExceptT . applyBindingsAll) xs
 
-bindAndApplyGroups :: [UStrictType] -> [(UStrictType, UStrictType)] -> [UStrictType]
-bindAndApplyGroups xs constr =
+bindAndApplyGroupsN :: [UStrictType] -> [(UStrictType, UStrictType)] -> [UStrictType]
+bindAndApplyGroupsN xs constr =
     case observe $ evalIntBindingT $ bindAndApplyGroupN xs constr of
             Right z -> z
-            Left z  -> []--traceShow z []
+            Left z  -> []
+
+bindAndApplyGroups :: [UStrictType] -> [(UStrictType, UStrictType)] -> [UStrictType]
+bindAndApplyGroups xs constr =
+    case observe $ evalIntBindingT $ bindAndApplyGroup xs constr of
+            Right z -> z
+            Left z  -> []
 
 evalMonadic :: MonadLogic m => [UStrictType] -> [(UStrictType, UStrictType)] -> m [UStrictType]
 evalMonadic xs constr =
     case fix (\rec times resC ->
         let res = bindAndApplyGroups resC constr in 
+            if (times == 1) || (null res) || (map uSTToIntr resC) == (map uSTToIntr res)
+            then res
+            else rec (times - 1) res) 1 xs of
+                [] -> mzero
+                x  -> return x 
+
+evalMonadicMP :: MonadPlus m => [UStrictType] -> [(UStrictType, UStrictType)] -> m [UStrictType]
+evalMonadicMP xs constr =
+    case fix (\rec times resC ->
+        let res = bindAndApplyGroupsN resC constr in 
+            if (times == 1) || (null res) || (map uSTToIntr resC) == (map uSTToIntr res)
+            then res
+            else rec (times - 1) res) 1 xs of
+                [] -> mzero
+                x  -> return x 
+
+evalMonadicN :: MonadLogic m => [UStrictType] -> [(UStrictType, UStrictType)] -> m [UStrictType]
+evalMonadicN xs constr =
+    case fix (\rec times resC ->
+        let res = bindAndApplyGroupsN resC constr in 
             if (times == 1) || (null res) || (map uSTToIntr resC) == (map uSTToIntr res)
             then res
             else rec (times - 1) res) 1 xs of
