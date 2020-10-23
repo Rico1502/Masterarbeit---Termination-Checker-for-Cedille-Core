@@ -4,7 +4,7 @@
 *  Haskell stack
 *  Cedille
 
-### Index (src):
+### Index (Masterarbeit/src):
 *  Check.hs                     Type checking
 *  CedilleCore.hs               Main I/O
 *  Norm.hs                      (Head-)Normalizing, erasing, and substituting functions
