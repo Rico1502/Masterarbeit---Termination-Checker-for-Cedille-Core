@@ -52,14 +52,6 @@ data Prim r b
 newtype TermP
   = Term (Prim TermP TermP)
 
--- Anns are terms with type, normal-form and context annotations on each constructor
-data Ann
-  = Ann {
-    valOf :: Prim Ann TermP,
-    norOf :: TermP,
-    typOf :: TermP
-  }
-
 -- Converts an ASCII String to a TermP
 fromString :: String -> TermP
 fromString src = snd (parseTerm src) [] where
@@ -205,7 +197,3 @@ fromString src = snd (parseTerm src) [] where
   parseName (chr : src) = let
     (src0, nam) = parseName src
     in (src0, chr : nam)
-
-  parseBool :: String -> (String, Bool)
-  parseBool ('\'' : src) = (src, True)
-  parseBool src = (src, False)
