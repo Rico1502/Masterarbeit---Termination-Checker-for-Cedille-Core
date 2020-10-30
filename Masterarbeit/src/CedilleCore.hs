@@ -5,12 +5,12 @@ import Norm
 import Parser
 import Types
 import CoreToPrim
-import ElaborationChecker
 
 import System.FilePath
 import System.Directory
 import System.Environment
 import System.Exit
+import Criterion.Measurement
 
 notM = maybe (Just ()) $ const Nothing
 maybV e v = maybe (Left (e ++ v)) Right
@@ -37,7 +37,7 @@ checkCmd (TermCmd v tm) mi@(ModInfo _ _ c (_,ver,_)) =
   putMsgVrb mi ("Checking " ++ v) >> do
   res <- if ver then inferTrmV c tm 1 else inferTrm c tm 1
   case res of
-    Nothing -> return $ maybV "Error while infering of" v Nothing 
+    [] -> return $ maybV "Error while infering of" v Nothing 
     _       -> return
       (maybV "Error in the definition of " v (synthTerm c tm) >>= \ tp ->
       addDef mi v (Left (hnfeTerm c tm, hnfType c tp)))
@@ -79,10 +79,10 @@ checkFile (ModInfo fs fp c (b, v, i)) =
         else readFile fp' >>= \ s -> maybe
           (nparses >> return Nothing)
           (\ (cs, _) ->
-             checkCmds cs (ModInfo fs' fp' c (b, v, succ i)) >>= \ r -> case r of
+             initializeTime >> getTime >>= \start -> checkCmds cs (ModInfo fs' fp' c (b, v, succ i)) >>= \ r -> getTime >>= \end -> case r of
                Left ""  -> return Nothing
                Left err -> nchecks err >> return Nothing
-               Right c' -> checks >> return (Just c'))
+               Right c' -> checks >> msg ("Elapsed time: " ++ show (end - start)) (return ()) >> return (Just c'))
           (parseFile s)
 
 exitOptionsError = ExitFailure 1

@@ -38,12 +38,12 @@ import StrictTypeTransform
  
 
 
-prsAndElab :: MonadLogic m => String -> Int -> m (Elaboration VariableE)
-prsAndElab cTrm dim = elaborate ((erasTrm . fromString) cTrm) dim
+prsAndElabN :: MonadLogic m => String -> Int -> m (Elaboration VariableE)
+prsAndElabN cTrm dim = elaborateN ((erasTrm . fromString) cTrm) dim
 
     -- Algorithm 2 -> Main algorithm!
-elaborate :: MonadLogic m => TrmP -> Int -> m (Elaboration VariableE)
-elaborate term dim = 
+elaborateN :: MonadLogic m => TrmP -> Int -> m (Elaboration VariableE)
+elaborateN term dim = 
     firstElab term dim >>-
     secondElab2 dim >>-
     --fourthElab >>-
@@ -536,83 +536,3 @@ anyDecEmpty :: Elaboration VariableE -> Bool
 anyDecEmpty (Elaboration (VarP nam) dec)        = dec == (Decoration $ ITyp [])
 anyDecEmpty (Elaboration (LamP nam bod) dec)    = dec == (Decoration $ ITyp []) || anyDecEmpty bod
 anyDecEmpty (Elaboration (AppP ftr str) dec)    = dec == (Decoration $ ITyp []) || (anyDecEmpty ftr) || (anyDecEmpty str)
-
-
-
-
-----------------------------------------------------------------------------------------------------------------------------
-------------------------------- ALGORITHM RUN HELPER -----------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------------------------------
-
-
--- Recursive algorithm start. Will evaluate until a fixed border (4 or 5) and return computed term, if any
-
-
-showIfSix :: Maybe (Elaboration VariableE) -> IO (Maybe (Elaboration VariableE))
-showIfSix trm = 
-    if null trm then do
-        putStrLn "MLN: No type for this dimension."
-        --putStrLn "Retrying computation with \969 (empty intersection) type."
-        --putStrLn ""
-        --putStrLn "Elaborates with \969 to:"
-        --putStrLn "WIP"
-        putStrLn ""
-        return trm
-    else do
-        putStrLn "MLN: Elaborates to:"
-        mapM_ (putStrLn . show) trm
-        putStrLn ""
-        --putStrLn "Result Size:"
-        --putStrLn $ (show . length) trm
-        return trm
-
-
-showIf :: [(Elaboration VariableE,[(StrictType VariableE, StrictType VariableE)])] -> IO ()
-showIf trm = 
-    do
-    putStrLn "Result Size:"
-    (putStrLn . show . length) trm
-    putStrLn ""
-    putStrLn "Result before Step 6:"
-    mapM_ (putStrLn . show . fst) trm
-    putStrLn ""
-
-memCheck :: String -> Int -> IO ()
-memCheck trm 3 = do
-    putStrLn "MLN: Computing farther than dimension 2 is beyond any time constraint."
-    putStrLn "MLN: Done."
-memCheck trm i = do
-    putStrLn $ "MLN: Trying Dimension: " ++ (show i) 
-    initializeTime
-    start <- getTime
-    chk <- showIfSix ( observeT ((once (prsAndElab trm i)) :: LogicT Maybe (Elaboration VariableE)) )
-    end <- getTime
-    putStrLn $ "MLN: Elapsed time for dimension " ++ show i ++ ": " ++ printf "%.4f secs (%.4f min)." (end - start) ((end - start)/60)
-    putStrLn ""
-    case chk of
-        Nothing -> do 
-            putStrLn "MLN: Runing algorithm for next dimension."
-            memCheck trm (i+1)
-        _   -> 
-            putStrLn "MLN: Done."
-
-memCheckTrmP :: TrmP -> Int -> IO (Maybe (Elaboration VariableE))
-memCheckTrmP trm 3 = do
-    putStrLn "Computing farther than dimension 2 is beyond any time constraint."
-    putStrLn "Done."
-    return Nothing
-memCheckTrmP trm i = do
-    putStrLn $ "Trying Dimension: " ++ (show i) 
-    initializeTime
-    start <- getTime
-    chk <- showIfSix ( observeT ((once (elaborate trm i)) :: LogicT Maybe (Elaboration VariableE)))
-    end <- getTime
-    putStrLn $ "Elapsed time for dimension " ++ show i ++ ": " ++ printf "%.4f secs (%.4f min)." (end - start) ((end - start)/60)
-    putStrLn ""
-    case chk of
-        Nothing  -> do 
-            putStrLn "Runing algorithm for next dimension."
-            memCheckTrmP trm (i+1)
-        _   -> do 
-            putStrLn "Done."
-            return chk

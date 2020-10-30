@@ -2,17 +2,18 @@ module CoreToPrim where
 
 import Types
 import Norm
-import ElaborationChecker
+import ElaborationCheckerN
+import Output
 import Control.Monad.Logic
 import Elaboration
 
-inferTrm :: Ctxt -> Term -> Int -> IO (Maybe (Elaboration VariableE))
-inferTrm ctx trm 2   = return Nothing
-inferTrm ctx trm dim = case observeT $ once $ elaborate (coreToPrim ctx trm) dim of
-    Nothing -> inferTrm ctx trm (dim+1)
+inferTrm :: Ctxt -> Term -> Int -> IO ([Elaboration VariableE])
+inferTrm ctx trm 2   = return []
+inferTrm ctx trm dim = case observeT $ once $ elaborateN (coreToPrim ctx trm) dim of
+    []      -> inferTrm ctx trm (dim+1)
     res     -> return res
 
-inferTrmV :: Ctxt -> Term -> Int -> IO (Maybe (Elaboration VariableE))
+inferTrmV :: Ctxt -> Term -> Int -> IO ([Elaboration VariableE])
 inferTrmV ctx trm dim = do
     putStrLn ""
     putStrLn "Try to infer term:"

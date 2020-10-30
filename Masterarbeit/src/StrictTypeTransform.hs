@@ -129,10 +129,6 @@ res a b = case observe $ runIntBindingT $ unifyTrm a b of
 -- take constraints, bind everything according to them
 -- then apply these bindings on all terms (i.e. all Decorations)
 -- (map (\constrG -> map (\const -> ((stToUST . fst) const, (stToUST . snd) const)) constrG) (groupBy (\a b -> fst a == fst b) constr))
-unifyDeco :: MonadLogic m => [Decoration VariableE] -> [(StrictType VariableE, StrictType VariableE)] -> m [Decoration VariableE]
-unifyDeco xs constr = (evalMonadic (map (\dec -> (intToUST . unMkDec) dec) xs) (map (\const -> ((stToUST . fst) const, (stToUST . snd) const)) constr)) >>- \res ->
-    return $ map (\x -> (clearDuplicateDeco . Decoration . uSTToIntr) x ) res
-
 unifyDecoN :: MonadLogic m => [Decoration VariableE] -> [(StrictType VariableE, StrictType VariableE)] -> m [Decoration VariableE]
 unifyDecoN xs constr = (evalMonadicN (map (\dec -> (intToUST . unMkDec) dec) xs) (map (\const -> ((stToUST . fst) const, (stToUST . snd) const)) constr)) >>- \res ->
     return $ map (\x -> (clearDuplicateDeco . Decoration . uSTToIntr) x ) res
@@ -151,46 +147,46 @@ bindAndApplyGroupN xs constr = do
     (runExceptT . applyBindingsAll) xs
 
 -- It seems this is way to much clutter and unification-fd does exactly, what it is supposed to do in a few tiny steps
-bindAndApplyGroup :: [UStrictType] -> [(UStrictType, UStrictType)] -> IntBindingT StrictType2 Logic (Either (UFailure StrictType2 IntVar) [UStrictType])
-bindAndApplyGroup [] constr = mzero
-bindAndApplyGroup xs constr = do
-    mapM_ (\x -> case fst x of
-        UVar z -> do
-            (fix (\rec a -> do
-                d <- lookupVar a
-                case d of
-                    Nothing -> bindVar a (snd x)
-                    Just y  -> do
-                        ret <- y === (snd x)
-                        if not ret 
-                        then
-                            case y of
-                            UVar t  -> rec t
-                            UTerm t -> do
-                                bindVar a (snd x); 
-                                case (snd x) of UVar tt -> bindVar tt y
-                        else
-                            return ()
-                ) z )
-        UTerm z -> case snd x of
-            UVar zz -> do
-                (fix (\rec a -> do
-                    d <- lookupVar a
-                    case d of
-                        Nothing -> bindVar a (fst x)
-                        Just y -> do
-                            ret <- y === (fst x)
-                            if not ret
-                            then
-                                case y of
-                                UVar t -> rec t
-                                UTerm t -> do 
-                                    unifyTrm y (fst x); return ()
-                            else
-                                return ()
-                    ) zz)
-        ) constr
-    (runExceptT . applyBindingsAll) xs
+-- bindAndApplyGroup :: [UStrictType] -> [(UStrictType, UStrictType)] -> IntBindingT StrictType2 Logic (Either (UFailure StrictType2 IntVar) [UStrictType])
+-- bindAndApplyGroup [] constr = mzero
+-- bindAndApplyGroup xs constr = do
+--     mapM_ (\x -> case fst x of
+--         UVar z -> do
+--             (fix (\rec a -> do
+--                 d <- lookupVar a
+--                 case d of
+--                     Nothing -> bindVar a (snd x)
+--                     Just y  -> do
+--                         ret <- y === (snd x)
+--                         if not ret 
+--                         then
+--                             case y of
+--                             UVar t  -> rec t
+--                             UTerm t -> do
+--                                 bindVar a (snd x); 
+--                                 case (snd x) of UVar tt -> bindVar tt y
+--                         else
+--                             return ()
+--                 ) z )
+--         UTerm z -> case snd x of
+--             UVar zz -> do
+--                 (fix (\rec a -> do
+--                     d <- lookupVar a
+--                     case d of
+--                         Nothing -> bindVar a (fst x)
+--                         Just y -> do
+--                             ret <- y === (fst x)
+--                             if not ret
+--                             then
+--                                 case y of
+--                                 UVar t -> rec t
+--                                 UTerm t -> do 
+--                                     unifyTrm y (fst x); return ()
+--                             else
+--                                 return ()
+--                     ) zz)
+--         ) constr
+--     (runExceptT . applyBindingsAll) xs
 
 bindAndApplyGroupsN :: [UStrictType] -> [(UStrictType, UStrictType)] -> [UStrictType]
 bindAndApplyGroupsN xs constr =
@@ -198,21 +194,6 @@ bindAndApplyGroupsN xs constr =
             Right z -> z
             Left z  -> []
 
-bindAndApplyGroups :: [UStrictType] -> [(UStrictType, UStrictType)] -> [UStrictType]
-bindAndApplyGroups xs constr =
-    case observe $ evalIntBindingT $ bindAndApplyGroup xs constr of
-            Right z -> z
-            Left z  -> []
-
-evalMonadic :: MonadLogic m => [UStrictType] -> [(UStrictType, UStrictType)] -> m [UStrictType]
-evalMonadic xs constr =
-    case fix (\rec times resC ->
-        let res = bindAndApplyGroups resC constr in 
-            if (times == 1) || (null res) || (map uSTToIntr resC) == (map uSTToIntr res)
-            then res
-            else rec (times - 1) res) 1 xs of
-                [] -> mzero
-                x  -> return x 
 
 evalMonadicMP :: MonadPlus m => [UStrictType] -> [(UStrictType, UStrictType)] -> m [UStrictType]
 evalMonadicMP xs constr =

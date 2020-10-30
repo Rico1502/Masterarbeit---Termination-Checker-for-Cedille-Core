@@ -1,5 +1,5 @@
 import System.Environment
-import ElaborationCheckerN
+import Output
 import Elaboration
 import StrictType
 import Control.Monad.Logic
@@ -7,6 +7,7 @@ import Criterion.Measurement
 import Text.Printf (printf)
 import Core
 import qualified Text.Show.Unicode
+import Control.Concurrent.ParallelIO (parallel_)
 
 main :: IO ()
 main = do 
@@ -28,7 +29,7 @@ main = do
             putStrLn ""
             initializeTime
             start <- getTime
-            ElaborationCheckerN.memCheck trm (read dim)
+            (memCheckN trm (read dim))
             --showIfSix ((prsAndElab2 trm (read dim)) :: [Elaboration VariableE])
             --showIf ( (prsAndElab trm (read dim)) :: [(Elaboration VariableE,[(StrictType VariableE, StrictType VariableE)])])
             end <- getTime
