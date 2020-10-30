@@ -11,8 +11,6 @@ import qualified Text.Show.Unicode
 newtype Intersection x
     = ITyp [StrictType x] deriving (Functor, Foldable, Traversable, Ord)
 
-mkInt :: [StrictType x] -> Intersection x
-mkInt x = ITyp x
 
 unMkInt :: Intersection x -> [StrictType x]
 unMkInt (ITyp x) = x
@@ -42,9 +40,6 @@ instance (Eq a, Ord a) => Eq (Intersection a) where
 data StrictType x
     = STyp x
     | CTyp (Intersection x) (StrictType x) deriving (Functor, Foldable, Traversable, Ord)
-
-unMkSTyp :: StrictType x -> x
-unMkSTyp (STyp s) = s
 
 instance (Show a) => Show (StrictType a) where
     showsPrec d (STyp x) =

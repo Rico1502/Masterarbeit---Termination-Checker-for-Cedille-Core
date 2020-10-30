@@ -24,20 +24,6 @@ import StrictType
 import StrictTypeTransform
 
 
---prsAndElab :: MonadLogic m => String -> Int -> m (Elaboration VariableE,[(StrictType VariableE, StrictType VariableE)])
---prsAndElab cTrm dim = elaborate ((erasTrm . fromString) cTrm) dim
- 
- -- Algorithm 2 -> Main algorithm!
---elaborate :: MonadLogic m => TrmP -> Int -> m (Elaboration VariableE,[(StrictType VariableE, StrictType VariableE)])
---elaborate term dim = 
---    firstElab term dim >>-
---    secondElab2 dim >>-
-    --fourthElab >>-
-    --fifthElab >>-
---    return
- 
-
-
 prsAndElabN :: MonadLogic m => String -> Int -> m (Elaboration VariableE)
 prsAndElabN cTrm dim = elaborateN ((erasTrm . fromString) cTrm) dim
 
@@ -88,28 +74,28 @@ firstElabOnce (TrmP term) min dim mDim = case term of
 
 -- Naive
 
--- Step 2 in algorithm.
--- secondElabOnce be executed for every monadic computation given by x and returns the composition of all these computations
-secondElab :: (MonadLogic m) => m (Elaboration VariableE) -> Int -> m (Elaboration VariableE,[(StrictType VariableE, StrictType VariableE)])
-secondElab x dim =
-    x >>- \z -> secondElabOnce z dim (sizeET z)
+-- -- Step 2 in algorithm.
+-- -- secondElabOnce be executed for every monadic computation given by x and returns the composition of all these computations
+-- secondElab :: (MonadLogic m) => m (Elaboration VariableE) -> Int -> m (Elaboration VariableE,[(StrictType VariableE, StrictType VariableE)])
+-- secondElab x dim =
+--     x >>- \z -> secondElabOnce z dim (sizeET z)
 
--- Step 2 recursive (on one(!) Elaboration).
--- Returns Tuple of: Elaboration and set of constraints C
-secondElabOnce :: (MonadLogic m) => Elaboration VariableE -> Int -> Int -> m (Elaboration VariableE,[(StrictType VariableE, StrictType VariableE)])
-secondElabOnce tr@(Elaboration trm decA) dim sizeM = case trm of
-    VarP z               ->
-        prodBetaDec decA dim sizeM >>-
-        \dec        -> return ((Elaboration (VarP z) (fst dec)), snd dec )
-    LamP nam bod ->
-        secondElabOnce bod dim sizeM >>- 
-        \elabBod    -> prodBetaDec decA dim sizeM >>- 
-        \dec        -> return (Elaboration (LamP nam (fst elabBod) ) (fst dec),  (snd elabBod) ++ (snd dec) )
-    AppP ftr str     -> 
-        secondElabOnce ftr dim sizeM >>-
-        \elabFtr    -> secondElabOnce str dim sizeM >>- 
-        \elabStr    -> prodBetaDec decA dim sizeM >>- 
-        \dec        -> return (Elaboration (AppP (fst elabFtr) (fst elabStr)) (fst dec), (snd elabFtr) ++ (snd elabStr) ++ (snd dec))
+-- -- Step 2 recursive (on one(!) Elaboration).
+-- -- Returns Tuple of: Elaboration and set of constraints C
+-- secondElabOnce :: (MonadLogic m) => Elaboration VariableE -> Int -> Int -> m (Elaboration VariableE,[(StrictType VariableE, StrictType VariableE)])
+-- secondElabOnce tr@(Elaboration trm decA) dim sizeM = case trm of
+--     VarP z               ->
+--         prodBetaDec decA dim sizeM >>-
+--         \dec        -> return ((Elaboration (VarP z) (fst dec)), snd dec )
+--     LamP nam bod ->
+--         secondElabOnce bod dim sizeM >>- 
+--         \elabBod    -> prodBetaDec decA dim sizeM >>- 
+--         \dec        -> return (Elaboration (LamP nam (fst elabBod) ) (fst dec),  (snd elabBod) ++ (snd dec) )
+--     AppP ftr str     -> 
+--         secondElabOnce ftr dim sizeM >>-
+--         \elabFtr    -> secondElabOnce str dim sizeM >>- 
+--         \elabStr    -> prodBetaDec decA dim sizeM >>- 
+--         \dec        -> return (Elaboration (AppP (fst elabFtr) (fst elabStr)) (fst dec), (snd elabFtr) ++ (snd elabStr) ++ (snd dec))
 
 
 -- Optimized by Krüger
@@ -155,24 +141,24 @@ secondElabOnce2 tr@(Elaboration trm decA) lMin lMax b = case trm of
 ------------------------------ STEP 4 -----------------------------------------
 
 
--- Choose EVERY possibility intelligent
-fourthElab :: MonadLogic m => (Elaboration VariableE, [(StrictType VariableE, StrictType VariableE)]) -> m (Elaboration VariableE, [(StrictType VariableE, StrictType VariableE)])
-fourthElab x = fourthElabOnce x
+-- -- Choose EVERY possibility intelligent
+-- fourthElab :: MonadLogic m => (Elaboration VariableE, [(StrictType VariableE, StrictType VariableE)]) -> m (Elaboration VariableE, [(StrictType VariableE, StrictType VariableE)])
+-- fourthElab x = fourthElabOnce x
 
-fourthElabOnce :: MonadLogic m => (Elaboration VariableE, [(StrictType VariableE, StrictType VariableE)]) -> m (Elaboration VariableE, [(StrictType VariableE, StrictType VariableE)])
-fourthElabOnce this@(elab@(Elaboration trm deco), constr) = case trm of
-    VarP x       -> 
-        return this
-    LamP nam bod -> 
-        fourthElabOnce (bod, constr) >>-
-        \elabBod    -> return (Elaboration (LamP nam (fst elabBod)) deco , snd elabBod)
-    AppP ftr str -> 
-        fourthElabOnce (ftr, []) >>-
-        \constrFtr  -> fourthElabOnce (str, []) >>-
-        \constrStr  -> 
-        return (elab, foldr (\x -> \state -> case x of 
-        CTyp xs s   -> ((head . unMkInt . unMkDec) deco,s) : (zipBoth ((unMkInt . unMkDec . getDeco) str) ((unMkInt) xs) ) ++ state
-        otherwise   -> state) (constr ++ (snd constrFtr) ++ (snd constrStr)) ((unMkInt . unMkDec . getDeco) ftr))
+-- fourthElabOnce :: MonadLogic m => (Elaboration VariableE, [(StrictType VariableE, StrictType VariableE)]) -> m (Elaboration VariableE, [(StrictType VariableE, StrictType VariableE)])
+-- fourthElabOnce this@(elab@(Elaboration trm deco), constr) = case trm of
+--     VarP x       -> 
+--         return this
+--     LamP nam bod -> 
+--         fourthElabOnce (bod, constr) >>-
+--         \elabBod    -> return (Elaboration (LamP nam (fst elabBod)) deco , snd elabBod)
+--     AppP ftr str -> 
+--         fourthElabOnce (ftr, []) >>-
+--         \constrFtr  -> fourthElabOnce (str, []) >>-
+--         \constrStr  -> 
+--         return (elab, foldr (\x -> \state -> case x of 
+--         CTyp xs s   -> ((head . unMkInt . unMkDec) deco,s) : (zipBoth ((unMkInt . unMkDec . getDeco) str) ((unMkInt) xs) ) ++ state
+--         otherwise   -> state) (constr ++ (snd constrFtr) ++ (snd constrStr)) ((unMkInt . unMkDec . getDeco) ftr))
 
 
 ------------------------------ STEP 5 -----------------------------------------
@@ -275,7 +261,6 @@ prodBetaStT2 dec@(STyp (Alpha n)) 0 max     = interleave
     (fmap (\l -> (dec, (CTyp (ITyp $ (fmap (\x -> STyp $ Beta x n) (foldToLogic [1..l])) ) (STyp $ Beta 0 n)) ) ) (foldToLogic [1..max]))
 prodBetaStT2 dec@(STyp (Alpha n)) min max   =
         (fmap (\l -> (dec, (CTyp (ITyp $ (fmap (\x -> STyp $ Beta x n) (foldToLogic [1..l])) ) (STyp $ Beta 0 n)) ) ) (foldToLogic [min..max]))
-prodBetaStT2 _ _ _                          = mzero
 
 
 
@@ -339,19 +324,6 @@ decomposeDecorationRec (Elaboration trm deco) ctP = do
                 (length . unMkInt . unMkDec . getDeco) str <= sum (map (\el -> case el of CTyp xs s -> (length . unMkInt) xs; _ -> 0) ((unMkInt . unMkDec . getDeco) ftr)) ) (zip decomposedFtr decomposedStr)
             return $ map (\(dDeco,dFtr,dStr) -> Elaboration (AppP dFtr dStr) (Decoration $ ITyp dDeco) ) (zip3 combDec decomposedFtr decomposedStr)
 
-
--- Concats two tuples of (Elaboration, Constraints)!
-concatConstraints :: Ord x => (Elaboration x, [(StrictType x, StrictType x)]) -> (Elaboration x, [(StrictType x, StrictType x)]) -> Maybe (Elaboration x, [(StrictType x, StrictType x)])
-concatConstraints (a, constrA) (b, constrB) = case concatElaboration a b of
-    Just res -> Just (res , (map head . group . sort) (constrA ++ constrB))
-    Nothing  -> Nothing
-
--- Helper:
--- Concats two Elaborations on the Intersection Level
-concatElaboration :: Eq x => Elaboration x -> Elaboration x -> Maybe (Elaboration x)
-concatElaboration x@(Elaboration trmX (Decoration (ITyp xs))) y@(Elaboration trmY (Decoration (ITyp ys))) = if equalTrm x y then
-    Just $ Elaboration trmX (Decoration (ITyp (xs ++ ys))) else Nothing
-
 -- Map on both permutations. Ensure that we got BetAlpMap for every AlpBetMap.
 -- Clear duplicates (inside one map and between any map)
 -- Adjust, that you are not getting 2^xs maps!
@@ -380,30 +352,30 @@ buildBetAlpMap xs ys =
 -- Map on both permutations. Ensure that we got BetAlpMap for every AlpBetMap.
 -- Clear duplicates (inside one map and between any map)
 -- Adjust, that you are not getting 2^xs maps!
-buildWholeMapMP :: (MonadLogic m, Eq x, Ord x) => [x] -> [x] -> m [(x,x)]
-buildWholeMapMP xs ys =
-    buildAlpBetMapMP xs ys 
-    >>- \abE -> case (\\) ys (foldr (\el st -> snd el : st) [] abE) of
-        []      -> return abE
-        ret     -> buildBetAlpMapMP xs ret >>- \baE -> return $ abE ++ baE
-    -- let
-        --alpBetSet = buildAlpBetMap xs ys in
-        --foldr (\abS state -> buildBetAlpMap xs (filter (\el -> notElem el ys) $ foldr (\el st -> snd el : st) [] abS ) >>- \baS -> interleave state (return $ baS ++ abS) ) (foldToLogic alpBetSet) alpBetSet
+-- buildWholeMapMP :: (MonadLogic m, Eq x, Ord x) => [x] -> [x] -> m [(x,x)]
+-- buildWholeMapMP xs ys =
+--     buildAlpBetMapMP xs ys 
+--     >>- \abE -> case (\\) ys (foldr (\el st -> snd el : st) [] abE) of
+--         []      -> return abE
+--         ret     -> buildBetAlpMapMP xs ret >>- \baE -> return $ abE ++ baE
+--     -- let
+--         --alpBetSet = buildAlpBetMap xs ys in
+--         --foldr (\abS state -> buildBetAlpMap xs (filter (\el -> notElem el ys) $ foldr (\el st -> snd el : st) [] abS ) >>- \baS -> interleave state (return $ baS ++ abS) ) (foldToLogic alpBetSet) alpBetSet
 
--- builds all possible constraints for Step 5.4.2 and Step 5.5.2
-buildAlpBetMapMP :: (MonadLogic m, Eq x, Ord x) => [x] -> [x] -> m [(x, x)]
-buildAlpBetMapMP xs ys =
-    (foldr' (\bet -> \state -> case bet of 
-        []  -> mzero
-        _   -> mplus (return (zipLeft xs bet)) state  ) mzero ( (filter (\yy -> length yy <= length xs) . powerset) ys >>- permutations))
+-- -- builds all possible constraints for Step 5.4.2 and Step 5.5.2
+-- buildAlpBetMapMP :: (MonadLogic m, Eq x, Ord x) => [x] -> [x] -> m [(x, x)]
+-- buildAlpBetMapMP xs ys =
+--     (foldr' (\bet -> \state -> case bet of 
+--         []  -> mzero
+--         _   -> mplus (return (zipLeft xs bet)) state  ) mzero ( (filter (\yy -> length yy <= length xs) . powerset) ys >>- permutations))
 
--- Find alpha for each non taken beta!
--- builds all possible constraints for Step 5.4.3 and Step 5.5.3
-buildBetAlpMapMP :: (MonadLogic m, Eq x, Ord x) => [x] -> [x] -> m [(x, x)]
-buildBetAlpMapMP xs ys =
-    (foldr' (\bet -> \state -> case bet of 
-        []  -> mzero
-        _   -> mplus (return $ zipRight bet ys) state ) mzero ((filter (\xx -> length xx <= length ys) . powerset) xs >>- permutations))
+-- -- Find alpha for each non taken beta!
+-- -- builds all possible constraints for Step 5.4.3 and Step 5.5.3
+-- buildBetAlpMapMP :: (MonadLogic m, Eq x, Ord x) => [x] -> [x] -> m [(x, x)]
+-- buildBetAlpMapMP xs ys =
+--     (foldr' (\bet -> \state -> case bet of 
+--         []  -> mzero
+--         _   -> mplus (return $ zipRight bet ys) state ) mzero ((filter (\xx -> length xx <= length ys) . powerset) xs >>- permutations))
 
 powerset :: [a] -> [[a]]
 powerset [] = [[]]
@@ -507,15 +479,6 @@ collectLargestDec s (Elaboration (AppP ftr str) xs) = let x = collectLargestDec 
 foldToLogic :: (Foldable f, MonadLogic m) => f a -> m a
 foldToLogic = foldr' (flip interleave.return) mzero
 
--- Zips both lists. If one list has only one element left, it will be used as element for the remaining other list.
-zipBoth :: [a] -> [b] -> [(a,b)]
-zipBoth [] _            = []
-zipBoth _ []            = []
-zipBoth (a:[]) (b:[])   = (a,b) : []
-zipBoth (a:[]) (b:bs)   = (a,b) : zipBoth (a:[]) bs
-zipBoth (a:as) (b:[])   = (a,b) : zipBoth as (b:[])
-zipBoth (a:as) (b:bs)   = (a,b) : zipBoth as bs
-
 zipLeft :: [a] -> [b] -> [(a,b)]
 zipLeft [] _            = []
 zipLeft _ []            = []
@@ -531,8 +494,3 @@ zipRight (a:[]) (b:[])   = (a,b) : []
 zipRight (a:[]) (b:bs)   = (a,b) : zipRight (a:[]) bs
 zipRight (a:as) (b:[])   = (a,b) : []
 zipRight (a:as) (b:bs)   = (a,b) : zipRight as bs
-
-anyDecEmpty :: Elaboration VariableE -> Bool
-anyDecEmpty (Elaboration (VarP nam) dec)        = dec == (Decoration $ ITyp [])
-anyDecEmpty (Elaboration (LamP nam bod) dec)    = dec == (Decoration $ ITyp []) || anyDecEmpty bod
-anyDecEmpty (Elaboration (AppP ftr str) dec)    = dec == (Decoration $ ITyp []) || (anyDecEmpty ftr) || (anyDecEmpty str)

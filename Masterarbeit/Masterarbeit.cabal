@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2ff8dfcbc49a9e306234909cbd7453b336c5aa76db063e729461a2f51f7d3201
+-- hash: d0e41cb504c2f89018f55740425a24c9812dac31a6f4d565075ebc9163983df6
 
 name:           Masterarbeit
 version:        0.1.0.0
@@ -32,7 +32,6 @@ library
       Core
       CoreToPrim
       Elaboration
-      ElaborationCheckerListN
       ElaborationCheckerMP
       ElaborationCheckerN
       Lib

@@ -33,7 +33,7 @@ instance Show VariableE where
 data SplTrm x
     = VarP String
     | LamP String x
-    | AppP x x
+    | AppP x x deriving Eq
 
 instance Show x => Show (SplTrm x) where
     showsPrec d (VarP nam)       = 
@@ -52,7 +52,7 @@ instance Show x => Show (SplTrm x) where
         showString ")"
 
 newtype TrmP
-    = TrmP (SplTrm TrmP)
+    = TrmP (SplTrm TrmP) deriving Eq
 
 instance Show TrmP where
     showsPrec d (TrmP trm) =
@@ -61,17 +61,11 @@ instance Show TrmP where
 newtype Decoration x =
     Decoration (Intersection x)
 
-mkDec :: Intersection x -> Decoration x
-mkDec i = Decoration i
-
 unMkDec :: Decoration x -> Intersection x
 unMkDec (Decoration i) = i
 
 instance (Show a) => Show (Decoration a) where
     showsPrec d (Decoration x) = showString "<" . showsPrec d x .showString ">"
-
-instance (Eq a, Ord a) => Eq (Decoration a) where
-    Decoration x == Decoration y = x == y
 
 data Elaboration x =
     Elaboration (SplTrm (Elaboration x)) (Decoration x)
@@ -97,19 +91,7 @@ instance Show x => Show (Elaboration x) where
 getDeco :: Elaboration x -> Decoration x
 getDeco (Elaboration _ d) = d
 
--- Computes Norm of an Elaboration for given Term
-norm :: Elaboration VariableE -> Int
-norm (Elaboration trm styp) = 
-    let size = elabSize styp in case trm of
-    VarP _               -> size
-    LamP nam bod -> 
-        max (norm bod) size
-    AppP fun arg     -> 
-        max (max (norm fun) (norm arg)) size
     
--- Beware: This will bite me in the butt, if I change up the way Intersections works!
-elabSize :: Decoration x -> Int
-elabSize (Decoration (ITyp x)) = length x
 
 -- Computes the Size of an Term for a given Elaboration
 sizeET :: Elaboration x -> Int
@@ -117,26 +99,6 @@ sizeET (Elaboration trm styp) = case trm of
     VarP _               -> 0
     LamP nam bod -> 1 + sizeET bod 
     AppP fun arg     -> 1 + sizeET fun + sizeET arg
-
--- unifies the Elaboration of two elaborated Terms
--- If the Terms are not equal: Nothing
-unionElabTerm :: (Eq x, Ord x) => Elaboration x -> Elaboration x -> Maybe (Elaboration x)
-unionElabTerm a@(Elaboration trmX typX) b@(Elaboration trmY typY) =
-    if equalTrm a b
-    then Just (Elaboration trmX (unionElab typX typY))
-    else Nothing
-
-unionElab :: (Eq x, Ord x) => Decoration x -> Decoration x -> Decoration x
-unionElab (Decoration (ITyp x)) (Decoration (ITyp y)) = Decoration (ITyp $ union x y)
-
--- Checks, if two ElabTerms are equal on the term Level!
-equalTrm :: Eq x => Elaboration x -> Elaboration x -> Bool
-equalTrm (Elaboration (VarP x) _) (Elaboration (VarP y) _) = x == y
-equalTrm (Elaboration (LamP aNam aBod) _) (Elaboration (LamP bNam bBod) _) =
-    equalTrm aBod bBod
-equalTrm (Elaboration (AppP aFun aArg) _) (Elaboration (AppP bFun bArg) _) = 
-    equalTrm aFun bFun &&
-    equalTrm aArg bArg
 
 -- computes an erased Cedille Term
 erasTrm :: TermP -> TrmP
@@ -157,10 +119,6 @@ erasTrm (Term trm) = case trm of
     Cst _ _ snd         -> erasTrm snd
     Rwt _ _ _ ret       -> erasTrm ret
     
--- computes the erased Cedille Term and returns it with the first term
-erasTrmTup :: TermP -> (TrmP, TermP)
-erasTrmTup trm = (erasTrm trm, trm)
-
 -- counts Decorations of given Term
 countDec :: Elaboration VariableE -> Int
 countDec (Elaboration (VarP x) dec)         = 1
@@ -169,11 +127,3 @@ countDec (Elaboration (AppP ftr str) dec)   = 1 + countDec ftr + countDec str
 
 clearDuplicateDeco :: Ord x => Decoration x -> Decoration x
 clearDuplicateDeco deco = (Decoration . clearDuplicateInt . unMkDec) deco
-
-elabForAll :: ((Elaboration x) -> Bool) -> Elaboration x -> Bool
-elabForAll f this@(Elaboration (VarP nam) deco)     = 
-    f this
-elabForAll f this@(Elaboration (LamP nam bod) deco) =
-    f this && elabForAll f bod 
-elabForAll f this@(Elaboration (AppP ftr str) deco) =
-    f this && elabForAll f ftr && elabForAll f str

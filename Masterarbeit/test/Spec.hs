@@ -1,7 +1,7 @@
 import Test.Hspec
 import ElaborationCheckerN
 import ElaborationCheckerMP
-import ElaborationCheckerListN
+import Core
 import Control.Monad.Logic (LogicT, once, observeT)
 import Elaboration
 import Data.Maybe (isJust)
@@ -24,6 +24,8 @@ main = hspec $ do
                 chkElabAll "#x * /x x" 2 `shouldBe` True
             it "(\\x. \\y. y (x x)) z, dim 2" $ do
                 chkElabAll "/#x * #y * /y /x x z" 2 `shouldBe` True
+            it "(λx. ((λy. (y y)) (λz. z)))" $ do
+                chkElabAll "#x * /#y * /y y #z * z" 2 `shouldBe` True
         describe "does not infer types for Lambda Terms with dimension:" $ do
             it "(\\x. \\y. y (x x)) z, dim 1" $ do
                 chkElabAll "/#x * #y * /y /x x z" 1 `shouldBe` False
@@ -31,7 +33,9 @@ main = hspec $ do
                 chkElabAll "/#x * /x x #x * /x x" 1  `shouldBe` False
             it "(\\x. x x x) i, dim 2" $ do
                 chkElabAll "/#x * /x /x x i" 2 `shouldBe` False
-        -- describe "erases terms correctly" $ do
+        describe "erases terms correctly" $ do
+            it "$ITrue %P @ CBool * #T /P CTrue #F /P CFalse T erased to True" $ do
+                (erasTrm . fromString) "$ITrue %P @ CBool * #T /P CTrue #F /P CFalse T" `shouldBe` TrmP (LamP "T" (TrmP $ LamP "F" (TrmP $ VarP "T")))
             
 
 chkElabAll :: String -> Int -> Bool
@@ -47,4 +51,4 @@ chkElabMP :: String -> Int -> Bool
 chkElabMP trm dim = not $ null ( ( (prsAndElabMP trm dim)) :: [Elaboration VariableE])
 
 chkElabListN :: String -> Int -> Bool
-chkElabListN trm dim = not $ null ( (once (prsAndElabLN trm dim)) :: [Elaboration VariableE] )
+chkElabListN trm dim = not $ null ( (once (prsAndElabN trm dim)) :: [Elaboration VariableE] )

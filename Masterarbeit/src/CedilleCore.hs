@@ -37,7 +37,7 @@ checkCmd (TermCmd v tm) mi@(ModInfo _ _ c (_,ver,_)) =
   putMsgVrb mi ("Checking " ++ v) >> do
   res <- if ver then inferTrmV c tm 1 else inferTrm c tm 1
   case res of
-    [] -> return $ maybV "Error while infering of" v Nothing 
+    Nothing -> return $ maybV "Error while infering of" v Nothing 
     _       -> return
       (maybV "Error in the definition of " v (synthTerm c tm) >>= \ tp ->
       addDef mi v (Left (hnfeTerm c tm, hnfType c tp)))

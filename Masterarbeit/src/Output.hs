@@ -4,35 +4,34 @@ import Elaboration
 import StrictType
 import ElaborationCheckerN
 import ElaborationCheckerMP
-import ElaborationCheckerListN
 import Control.Monad.Logic (observeT, LogicT, MonadLogic(once))
 import Criterion.Measurement (getTime, initializeTime)
 import Text.Printf (printf)
 
 -- memCheck for Cedille Core
 
-memCheckTrmP :: TrmP -> Int -> IO ([Elaboration VariableE])
+memCheckTrmP :: TrmP -> Int -> IO (Maybe (Elaboration VariableE))
 memCheckTrmP trm 3 = do
     putStrLn "Computing farther than dimension 2 is beyond any time constraint."
     putStrLn "Done."
-    return []
+    return Nothing
 memCheckTrmP trm i = do
     putStrLn $ "Trying Dimension: " ++ (show i) 
     initializeTime
     start <- getTime
-    chk <- showIfSixN ( ((once (elaborateN trm i)) :: [Elaboration VariableE]))
+    chk <- showIfSixLN (observeT ((once (elaborateN trm i)) :: LogicT Maybe (Elaboration VariableE)))
     end <- getTime
     putStrLn $ "Elapsed time for dimension " ++ show i ++ ": " ++ printf "%.4f secs (%.4f min)." (end - start) ((end - start)/60)
     putStrLn ""
     case chk of
-        []  -> do 
+        Nothing  -> do 
             putStrLn "Runing algorithm for next dimension."
             memCheckTrmP trm (i+1)
         _   -> do 
             putStrLn "Done."
             return chk
 
--- ElaborationCheckerN
+-- ElaborationCheckerN (List Monad)
 
 memCheckN :: String -> Int -> IO ()
 memCheckN trm 3 = do
@@ -66,7 +65,7 @@ showIfSixN trm =
         return trm
 
 
--- ElaborationCheckerListN
+-- ElaborationCheckerN (LogicT monad)
 
 memCheckLN :: String -> Int -> IO ()
 memCheckLN trm 2 = do
@@ -76,7 +75,7 @@ memCheckLN trm i = do
     putStrLn $ "MLN: Trying Dimension: " ++ (show i) 
     initializeTime
     start <- getTime
-    chk <- showIfSixLN ( observeT ((once (prsAndElabLN trm i)) :: LogicT Maybe (Elaboration VariableE)) )
+    chk <- showIfSixLN ( observeT ((once (prsAndElabN trm i)) :: LogicT Maybe (Elaboration VariableE)) )
     end <- getTime
     putStrLn $ "MLN: Elapsed time for dimension " ++ show i ++ ": " ++ printf "%.4f secs (%.4f min)." (end - start) ((end - start)/60)
     putStrLn ""
