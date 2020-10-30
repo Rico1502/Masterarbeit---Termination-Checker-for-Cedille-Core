@@ -9,14 +9,15 @@ import qualified Text.Show.Unicode
 -- Strict Intersection Types.
 -- Empty Intersection Type is possible, but not wanted (at the moment)
 newtype Intersection x
-    = ITyp [StrictType x] deriving (Functor, Foldable, Traversable, Ord)
+    = ITyp [StrictType x] deriving (Ord, Foldable)
 
 
 unMkInt :: Intersection x -> [StrictType x]
 unMkInt (ITyp x) = x
 
 instance (Show a) => Show (Intersection a) where
-    showsPrec d (ITyp []) = showString " \969"
+    -- Omega case. Never made it into the project
+    --showsPrec d (ITyp []) = showString " \969"
     showsPrec d (ITyp (x:[])) = showParen (d > 5) $ showsPrec d x
     showsPrec d (ITyp xs) = showParen (d > intrPrec) $  
         showString "[" . foldr (\el st -> st . showString " , " . showsPrec intrPrec el) (showsPrec intrPrec (head xs)) (tail xs) . showString "]"
@@ -28,9 +29,11 @@ instance (Show a) => Show (Intersection a) where
         where intrPrec = 5
 
 instance (Eq a, Ord a) => Eq (Intersection a) where
-    ITyp [] == ITyp []= True -- Three cases for omega
-    ITyp [] == ITyp y = True
-    ITyp x  == ITyp []= True
+    -- Three cases for omega, but it never made it into the project
+    -- ITyp [] == ITyp []= True 
+    -- ITyp [] == ITyp y = True
+    -- ITyp x  == ITyp []= True
+
     -- Checks, if every type in x is in y.
     -- Therefore considers associativity, commutativity and idempotence
     ITyp x  == ITyp y = (map head . group . sort) y == (map head . group . sort) x
@@ -39,7 +42,7 @@ instance (Eq a, Ord a) => Eq (Intersection a) where
 -- Strict Types
 data StrictType x
     = STyp x
-    | CTyp (Intersection x) (StrictType x) deriving (Functor, Foldable, Traversable, Ord)
+    | CTyp (Intersection x) (StrictType x) deriving (Ord, Foldable)
 
 instance (Show a) => Show (StrictType a) where
     showsPrec d (STyp x) =

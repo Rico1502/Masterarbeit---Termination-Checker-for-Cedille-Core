@@ -68,7 +68,7 @@ showIfSixN trm =
 -- ElaborationCheckerN (LogicT monad)
 
 memCheckLN :: String -> Int -> IO ()
-memCheckLN trm 2 = do
+memCheckLN trm 3 = do
     putStrLn "MLN: Computing farther than dimension 2 is beyond any time constraint."
     putStrLn "MLN: Done."
 memCheckLN trm i = do
@@ -101,7 +101,7 @@ showIfSixLN trm =
 
 
 memCheckMP :: String -> Int -> IO ()
-memCheckMP trm 2 = do
+memCheckMP trm 3 = do
     putStrLn "MP: Computing farther than dimension 2 is beyond any time constraint ."
     putStrLn "MP: Done."
 memCheckMP trm i = do

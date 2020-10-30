@@ -230,19 +230,19 @@ prodAlphaDec d minV dim =
 -- Naive: get d and |M| as explained in algorithm to produce Betas
 
 -- produces Beta functions (beta \cap beta \cap beta -> beta) from given Alphas.
-prodBetaDec :: MonadPlus m => Decoration VariableE -> Int -> Int -> m (Decoration VariableE,[(StrictType VariableE, StrictType VariableE)])
-prodBetaDec dec dim sizeM =
-    foldr (\alph -> \state -> state >>= \beta -> fmap (\z -> beta ++ [z]) (prodBetaStT alph dim sizeM) ) (return []) ((unMkInt . unMkDec) dec) >>=
-    \betas -> return ( (Decoration $ ITyp $ (map (\z -> snd z) betas)) ,betas)
+-- prodBetaDec :: MonadPlus m => Decoration VariableE -> Int -> Int -> m (Decoration VariableE,[(StrictType VariableE, StrictType VariableE)])
+-- prodBetaDec dec dim sizeM =
+--     foldr (\alph -> \state -> state >>= \beta -> fmap (\z -> beta ++ [z]) (prodBetaStT alph dim sizeM) ) (return []) ((unMkInt . unMkDec) dec) >>=
+--     \betas -> return ( (Decoration $ ITyp $ (map (\z -> snd z) betas)) ,betas)
         
 
--- produces a Beta function (beta \cap beta \cap beta -> beta) for a given Alpha and all possible l's.
-prodBetaStT :: MonadPlus m => StrictType VariableE -> Int -> Int -> m (StrictType VariableE , StrictType VariableE)
-prodBetaStT dec@(STyp (Alpha n)) dim sizeM =
-    mplus 
-        (mplus (return (dec, dec)) (return (dec, (STyp $ Beta 0 n) )))
-        (fmap (\l -> (dec, (CTyp (ITyp $ (fmap (\x -> STyp $ Beta x n) (foldToLogic [1..l])) ) (STyp $ Beta 0 n)) ) ) (foldToLogic [1..(dim*sizeM)]))
-prodBetaStT _ _ _ = mzero
+-- -- produces a Beta function (beta \cap beta \cap beta -> beta) for a given Alpha and all possible l's.
+-- prodBetaStT :: MonadPlus m => StrictType VariableE -> Int -> Int -> m (StrictType VariableE , StrictType VariableE)
+-- prodBetaStT dec@(STyp (Alpha n)) dim sizeM =
+--     mplus 
+--         (mplus (return (dec, dec)) (return (dec, (STyp $ Beta 0 n) )))
+--         (fmap (\l -> (dec, (CTyp (ITyp $ (fmap (\x -> STyp $ Beta x n) (foldToLogic [1..l])) ) (STyp $ Beta 0 n)) ) ) (foldToLogic [1..(dim*sizeM)]))
+-- prodBetaStT _ _ _ = mzero
 
 -- Optimized: Gets a min and max for l to produce Betas
 
@@ -372,11 +372,11 @@ buildBetAlpMap xs ys =
 
 -- Find alpha for each non taken beta!
 -- builds all possible constraints for Step 5.4.3 and Step 5.5.3
-buildBetAlpMapMP :: (MonadPlus m, Eq x, Ord x) => [x] -> [x] -> m [(x, x)]
-buildBetAlpMapMP xs ys =
-    (foldr' (\bet -> \state -> case bet of 
-        []  -> mzero
-        _   -> mplus (return $ zipRight bet ys) state ) mzero ((filter (\xx -> length xx <= length ys) . powerset) xs >>= permutations))
+-- buildBetAlpMapMP :: (MonadPlus m, Eq x, Ord x) => [x] -> [x] -> m [(x, x)]
+-- buildBetAlpMapMP xs ys =
+--     (foldr' (\bet -> \state -> case bet of 
+--         []  -> mzero
+--         _   -> mplus (return $ zipRight bet ys) state ) mzero ((filter (\xx -> length xx <= length ys) . powerset) xs >>= permutations))
 
 powerset :: [a] -> [[a]]
 powerset [] = [[]]

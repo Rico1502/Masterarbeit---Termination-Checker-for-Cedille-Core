@@ -29,7 +29,7 @@ main = do
             putStrLn ""
             initializeTime
             start <- getTime
-            (memCheckN trm (read dim))
+            (memCheckLN trm (read dim))
             --showIfSix ((prsAndElab2 trm (read dim)) :: [Elaboration VariableE])
             --showIf ( (prsAndElab trm (read dim)) :: [(Elaboration VariableE,[(StrictType VariableE, StrictType VariableE)])])
             end <- getTime

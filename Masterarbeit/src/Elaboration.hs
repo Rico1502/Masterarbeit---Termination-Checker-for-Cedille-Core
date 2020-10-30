@@ -101,6 +101,7 @@ sizeET (Elaboration trm styp) = case trm of
     AppP fun arg     -> 1 + sizeET fun + sizeET arg
 
 -- computes an erased Cedille Term
+-- only needed for hand written tests of old Cedille Core environment: INCOMPLETE!
 erasTrm :: TermP -> TrmP
 erasTrm (Term trm) = case trm of
     Var nam             -> TrmP $ VarP nam 
@@ -111,13 +112,6 @@ erasTrm (Term trm) = case trm of
         then erasTrm fun
         else TrmP $ AppP (erasTrm fun) (erasTrm arg)
     Let nam typ bod     -> TrmP $ AppP (TrmP (LamP nam $ erasTrm (bod (Term (Var nam))) ) ) (erasTrm typ)
-    Bis _ fty _ _       -> erasTrm fty  
-    Fst trm             -> erasTrm trm
-    Snd trm             -> erasTrm trm
-    Rfl fst _           -> erasTrm fst
-    Sym trm             -> erasTrm trm
-    Cst _ _ snd         -> erasTrm snd
-    Rwt _ _ _ ret       -> erasTrm ret
     
 -- counts Decorations of given Term
 countDec :: Elaboration VariableE -> Int
