@@ -26,7 +26,7 @@ main = hspec $ do
                 chkElabAll "/#x * #y * /y /x x z" 2 `shouldBe` True
             it "(λx. ((λy. (y y)) (λz. z))), dim 2" $ do
                 chkElabAll "#x * /#y * /y y #z * z" 2 `shouldBe` True
-            it "(\\x. (x x)) ((\\i. i) /t t), dim 2" $ do
+            it "(\\x. (x x)) ((\\i. i) (t t)), dim 2" $ do
                 chkElabAll "/#x * /x x /#i * i /t t" 2 `shouldBe` True
         describe "does not infer types for Lambda Terms with dimension:" $ do
             it "(\\x. \\y. y (x x)) z, dim 1" $ do
@@ -40,7 +40,7 @@ main = hspec $ do
         describe "erases terms correctly" $ do
             it "Let and erased Lambda - $ITrue IBool %P @ CBool * #T /P CTrue #F /P CFalse T erased to True" $ do
                 (erasTrm . fromString) "$ITrue IBool %P @ CBool * #T /P CTrue #F /P CFalse T" `shouldBe` TrmP (AppP ( TrmP $ LamP "ITrue" (TrmP (LamP "T" (TrmP $ LamP "F" (TrmP $ VarP "T")))) ) (TrmP $ VarP "IBool"))
-            it "Erased Application - #x * \\x \\x x" $ do
+            it "Erased Application - #x * \\x. \\x x to \\x. x" $ do
                 (erasTrm . fromString) "#x * \\x \\x x" `shouldBe` TrmP (LamP "x" (TrmP $ VarP "x"))
         describe "prints elaborations correct (only for coverage)" $ do
             it "correct elaboration for (\\x. \\y. y (x x)) z" $ do
