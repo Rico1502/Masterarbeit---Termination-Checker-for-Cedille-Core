@@ -1,3 +1,5 @@
+-- When inserting this into CedilleCore, replace "module CedilleCore" with "module Main"!
+
 module CedilleCore where
 import Check
 import Trie
