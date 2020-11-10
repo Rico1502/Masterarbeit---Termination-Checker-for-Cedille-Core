@@ -2,5 +2,8 @@
 Masterarbeit/dist/*
 Masterarbeit/.stack-work/*
 Masterarbeit/profiles/*
+Masterarbeit/*.aux
+Masterarbeit/*.ps
+Masterarbeit/*.tix
 *.hp
 *.prof
