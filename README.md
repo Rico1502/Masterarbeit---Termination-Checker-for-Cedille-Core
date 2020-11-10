@@ -20,5 +20,5 @@
 
 ### How to run:
 
-Insert the source folder into your Cedille/core directory and run the Makefile. Then run cedille-core with the executable build by the Makefile.
+Insert the source folder into your Cedille/core directory, replace module CedilleCore with Main(!) and run the Makefile. Then run cedille-core with the executable build by the Makefile.
 The extended Cedille Core should also be accessable via the cedille emacs mode.
